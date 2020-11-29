@@ -10,33 +10,38 @@ def read_gz_file(path, conn):
         for line in f:
             conn.send(line)
 
+nams = [ \
+        "/bigdata/mmalensek/nam/3hr/2015/", \
+        "/bigdata/mmalensek/nam/3hr/2016/", \
+        "/bigdata/mmalensek/nam/3hr/2017/", \
+        "/bigdata/mmalensek/nam/3hr/2018/", \
+        "/bigdata/mmalensek/nam/3hr/2019/"]
 
 if __name__ == "__main__":
-    dir_prefix = sys.argv[1]
-    host = sys.argv[2]
-    port = int(sys.argv[3])
+    host = sys.argv[1]
+    port = int(sys.argv[2])
     
     s = socket.socket()             # Create a socket object
     s.bind((host, port))            # Bind to the port
-    s.listen(5)                     # Now wait for client connection.
+    s.listen(1)                     # Now wait for client connection.
 
     print('Server listening....')
     conn, addr = s.accept()     # Establish connection with client.
-    print('connected')
+    print('connected by ' , addr)
     
     reading_futures = []
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
-        for root, dirs, files in os.walk(dir_prefix):
-            for filename in files:
-                print('executing: ' + dir_prefix+filename)
-                fu = executor.submit(read_gz_file, dir_prefix+filename, conn)
-                reading_futures.append(fu)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+        for nam_dir in nams:
+            for root, dirs, files in os.walk(nam_dir):
+                for filename in files:
+                    print('Reading file: ' + nam_dir + filename)
+                    fu = executor.submit(read_gz_file, nam_dir + filename, conn)
+                    reading_futures.append(fu)
         
-        print('Running...')
+        print('Sending data to ' , addr)
         res = concurrent.futures.wait(reading_futures, timeout=120, return_when='ALL_COMPLETED')
         
-        print(res)
-        print('Program ends, connection closed')
+        print('Failure process number: ' + str(len(res[1])))
+        print('Program ends, connection is closed')
         conn.close()
-
