@@ -8,11 +8,11 @@ import os
 def read_gz_file(path, conn):
     with gzip.open(path, 'rb') as f:
         for line in f:
-            conn.send(line)
+            conn.sendall(line)
 
 nams = [ \
-        "/bigdata/mmalensek/nam/3hr/2015/", \
-        "/bigdata/mmalensek/nam/3hr/2016/", \
+        #"/bigdata/mmalensek/nam/3hr/2015/", \
+        #"/bigdata/mmalensek/nam/3hr/2016/", \
         "/bigdata/mmalensek/nam/3hr/2017/", \
         "/bigdata/mmalensek/nam/3hr/2018/", \
         "/bigdata/mmalensek/nam/3hr/2019/"]
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     
     reading_futures = []
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
         for nam_dir in nams:
             for root, dirs, files in os.walk(nam_dir):
                 for filename in files:
